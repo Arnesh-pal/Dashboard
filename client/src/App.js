@@ -14,7 +14,7 @@ import SettingsPage from './SettingsPage';
 import ContactPage from './ContactPage';
 import MainLayout from './MainLayout';
 
-axios.defaults.baseURL = 'http://localhost:5001';
+axios.defaults.baseURL = 'https://my-dashboard-server-1cyf.onrender.com';
 axios.defaults.withCredentials = true;
 
 function App() {
