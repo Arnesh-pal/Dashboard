@@ -11,6 +11,46 @@ const SettingsIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentC
 const ContactIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>;
 
+
+
+// NEW: Server Status Indicator Component
+const ServerStatus = () => {
+    const [status, setStatus] = useState('checking'); // 'ok', 'checking', 'down'
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            setStatus('checking');
+            try {
+                await axios.get('/api/health');
+                setStatus('ok');
+            } catch (error) {
+                setStatus('down');
+            }
+        };
+
+        checkStatus(); // Initial check
+        const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
+
+        return () => clearInterval(interval); // Cleanup on component unmount
+    }, []);
+
+    const statusConfig = {
+        ok: { color: 'bg-green-500', tooltip: 'Server is online' },
+        checking: { color: 'bg-yellow-500', tooltip: 'Checking server status...' },
+        down: { color: 'bg-red-500', tooltip: 'Server is offline or waking up' },
+    };
+
+    return (
+        <div className="relative group flex items-center">
+            <span className={`w-3 h-3 rounded-full ${statusConfig[status].color}`}></span>
+            <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                {statusConfig[status].tooltip}
+            </span>
+        </div>
+    );
+};
+
+
 const MainLayout = ({ user }) => {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
