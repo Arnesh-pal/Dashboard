@@ -82,7 +82,7 @@ function Dashboard({ dataVersion, onDataChange }) {
         <>
             <div className="p-4 md:p-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-[#DDEFE0] p-4 rounded-lg shadow"><h3 className="text-sm">Total Revenues</h3><p className="text-2xl font-bold">${stats.totalRevenues.toLocaleString()}</p></div>
+                    <div className="bg-[#DDEFE0] p-4 rounded-lg shadow"><h3 className="text-sm">Total Revenue</h3><p className="text-2xl font-bold">₹{stats.totalRevenues.toLocaleString()}</p></div>
                     <div className="bg-[#F4ECDD] p-4 rounded-lg shadow"><h3 className="text-sm">Total Transactions</h3><p className="text-2xl font-bold">{stats.totalTransactions.toLocaleString()}</p></div>
                     <div className="bg-[#DEE0EF] p-4 rounded-lg shadow"><h3 className="text-sm">Total Users</h3><p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p></div>
                 </div>
@@ -119,8 +119,8 @@ function Dashboard({ dataVersion, onDataChange }) {
                         </div>
                     </div>
                     <div onClick={() => setIsModalOpen(true)} className="bg-white p-6 rounded-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-gray-50 shadow-md">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-4xl text-gray-400 mb-4">+</div>
-                        <h3 className="font-bold text-lg">Add Profile</h3>
+                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-4xl text-gray-400 mb-4">+</div>
+                         <h3 className="font-bold text-lg">Add Profile</h3>
                     </div>
                 </div>
             </div>
