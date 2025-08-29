@@ -9,6 +9,12 @@ const requireLogin = (req, res, next) => {
 
 module.exports = app => {
     // --- DYNAMIC DASHBOARD STATS ---
+
+    // Health Check Route
+    app.get('/api/health', (req, res) => {
+        res.status(200).send({ status: 'ok' });
+    });
+    
     app.get('/api/dashboard_stats', requireLogin, async (req, res) => {
         // NEW: Health Check Route
         app.get('/api/health', (req, res) => {
