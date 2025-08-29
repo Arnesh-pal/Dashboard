@@ -31,16 +31,24 @@ function Dashboard({ dataVersion, onDataChange }) {
             let labels, incomeData, expenseData;
 
             if (view === 'month') {
-                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-                incomeData = Array(5).fill(0);
-                expenseData = Array(5).fill(0);
+                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                incomeData = Array(4).fill(0);
+                expenseData = Array(4).fill(0);
+
+                // CORRECTED: Process raw transactions and group them by week on the frontend
                 transactions.forEach(t => {
-                    const weekIndex = parseInt(t.group);
-                    if (weekIndex >= 0 && weekIndex < 5) {
-                        incomeData[weekIndex] += parseFloat(t.incomeTotal);
-                        expenseData[weekIndex] += parseFloat(t.expenseTotal);
+                    const transactionDate = new Date(t.date);
+                    const dayOfMonth = transactionDate.getDate();
+                    // Calculate week index (0-3). Days 29, 30, 31 will be capped at week 3.
+                    const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3);
+
+                    if (t.type === 'income') {
+                        incomeData[weekIndex] += parseFloat(t.amount);
+                    } else {
+                        expenseData[weekIndex] += parseFloat(t.amount);
                     }
                 });
+
             } else { // Year view
                 labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 incomeData = Array(12).fill(0);

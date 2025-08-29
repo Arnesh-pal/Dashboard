@@ -29,7 +29,7 @@ module.exports = app => {
         });
     });
 
-    // --- DYNAMIC GRAPH DATA (WITH CORRECTED WEEK LOGIC) ---
+    // --- DYNAMIC GRAPH DATA (WITH CORRECTED LOGIC) ---
     app.get('/api/activities_chart', requireLogin, async (req, res) => {
         const { view } = req.query;
         const userId = req.user.id;
@@ -53,16 +53,10 @@ module.exports = app => {
                 const now = new Date();
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                // CORRECTED: Send all raw transactions for the current month
                 const transactions = await db.Transaction.findAll({
                     where: { userId, date: { [Op.between]: [startOfMonth, endOfMonth] } },
-                    attributes: [
-                        // CORRECTED: This correctly groups days into weeks 0, 1, 2, 3, 4
-                        [db.sequelize.literal(`FLOOR((EXTRACT(DAY FROM "date") - 1) / 7)`), 'group'],
-                        [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'expense' THEN amount ELSE 0 END`)), 'expenseTotal'],
-                        [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'income' THEN amount ELSE 0 END`)), 'incomeTotal']
-                    ],
-                    group: ['group'],
-                    order: [['group', 'ASC']]
+                    order: [['date', 'ASC']]
                 });
                 res.send({ transactions, view: 'month' });
             }
@@ -71,7 +65,6 @@ module.exports = app => {
             res.status(500).send({ error: "Failed to fetch chart data" });
         }
     });
-
     // ... (rest of the routes are unchanged)
     app.get('/api/top_products', requireLogin, async (req, res) => {
         const topProducts = await db.Sale.findAll({
