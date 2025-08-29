@@ -20,7 +20,13 @@ app.use(session({
     secret: process.env.COOKIE_KEY || 'averysecretkey',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // only https in prod
+        httpOnly: true,
+        sameSite: 'none', // allow cross-site (Render <-> Netlify)
+    }
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
