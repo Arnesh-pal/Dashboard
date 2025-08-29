@@ -10,10 +10,11 @@ const app = express();
 app.use(express.json());
 
 // --- Middleware ---
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://uboard.netlify.app'
-];
+// ✅ Allow Netlify frontend
+app.use(cors({
+  origin: "https://uboard.netlify.app",  // frontend URL
+  credentials: true,                      // allow cookies/sessions
+}));
 
 app.use(session({
     secret: process.env.COOKIE_KEY || 'averysecretkey',
