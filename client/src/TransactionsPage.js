@@ -66,9 +66,9 @@ function TransactionsPage({ onDataChange }) {
     return (
         <div className="p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-green-100 p-4 rounded-lg shadow"><h3 className="text-sm text-green-800">This Month's Income</h3><p className="text-2xl font-bold text-green-600">${summary.monthlyIncome.toLocaleString()}</p></div>
-                <div className="bg-red-100 p-4 rounded-lg shadow"><h3 className="text-sm text-red-800">This Month's Expense</h3><p className="text-2xl font-bold text-red-600">${summary.monthlyExpense.toLocaleString()}</p></div>
-                <div className="bg-blue-100 p-4 rounded-lg shadow"><h3 className="text-sm text-blue-800">This Month's Net</h3><p className="text-2xl font-bold text-blue-600">${summary.net.toLocaleString()}</p></div>
+                <div className="bg-green-100 p-4 rounded-lg shadow"><h3 className="text-sm text-green-800">This Month's Income</h3><p className="text-2xl font-bold text-green-600">₹{summary.monthlyIncome.toLocaleString()}</p></div>
+                <div className="bg-red-100 p-4 rounded-lg shadow"><h3 className="text-sm text-red-800">This Month's Expense</h3><p className="text-2xl font-bold text-red-600">₹{summary.monthlyExpense.toLocaleString()}</p></div>
+                <div className="bg-blue-100 p-4 rounded-lg shadow"><h3 className="text-sm text-blue-800">This Month's Net</h3><p className="text-2xl font-bold text-blue-600">₹{summary.net.toLocaleString()}</p></div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -93,7 +93,7 @@ function TransactionsPage({ onDataChange }) {
                                                 <td className="py-2">{t.description}</td>
                                                 <td className="py-2 text-sm text-gray-500">{new Date(t.date).toLocaleDateString()}</td>
                                                 <td className="py-2 text-sm"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${t.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{t.type}</span></td>
-                                                <td className={`py-2 text-right font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>{t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()}</td>
+                                                <td className={`py-2 text-right font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>{t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}</td>
                                                 <td className="text-right space-x-4"><button onClick={() => handleEdit(t)} className="text-sm text-blue-600 font-semibold">Edit</button><button onClick={() => handleDelete(t.id)} className="text-sm text-red-600 font-semibold">Delete</button></td>
                                             </>
                                         )}
