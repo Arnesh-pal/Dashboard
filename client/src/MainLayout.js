@@ -56,7 +56,7 @@ const MainLayout = ({ user }) => {
                         <ContactIcon />
                         <span className="ml-4">Contact Us</span>
                     </Link>
-                    <a href="http://localhost:5001/api/logout" className="flex items-center p-2 rounded-lg hover:bg-white/20 text-sm">
+                    <a href="https://my-dashboard-server-1cyf.onrender.com" className="flex items-center p-2 rounded-lg hover:bg-white/20 text-sm">
                         <span>Logout</span>
                     </a>
                 </div>
