@@ -21,7 +21,7 @@ module.exports = app => {
         req.logout(function (err) {
             if (err) { return next(err); }
             // Redirect to the frontend's home page after logout
-            res.redirect('${CLIENT_URL}/');
+            res.redirect(`${CLIENT_URL}/`);
         });
     });
 
