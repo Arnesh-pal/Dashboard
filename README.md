@@ -4,6 +4,10 @@ Welcome to the Full-Stack Dynamic Dashboard, a comprehensive web application bui
 
 ---
 
+## Live Link: https://uboard.netlify.app/login
+
+---
+
 ## ✨ Features
 
 - **Secure User Authentication**: Robust sign-in and registration system using both Google OAuth 2.0 and traditional email/password.
@@ -21,12 +25,12 @@ Here you can showcase your application. Simply replace the placeholder links wit
 
 | Sign-In Page | Main Dashboard |
 | :---: | :---: |
-| <img width="1249" height="665" alt="image" src="https://github.com/user-attachments/assets/c0f516d1-fd28-488d-8333-b9f07a60b539" />
-* | *[Your Screenshot Here]* |
+| <img width="1249" height="665" alt="Sign-In Page" src="https://github.com/user-attachments/assets/c0f516d1-fd28-488d-8333-b9f07a60b539" /> | <img width="1371" height="832" alt="Main Dashboard" src="https://github.com/user-attachments/assets/34f003a0-7557-4c9a-af7c-edeec412235e" /> |
 
 | Transactions Page | Mobile View |
 | :---: | :---: |
-| *[Your Screenshot Here]* | *[Your Screenshot Here]* |
+| <img width="1403" height="843" alt="Transactions Page" src="https://github.com/user-attachments/assets/4838d5a6-f345-4384-9eff-0695b33e3cb7" /> | <img width="427" height="842" alt="Mobile View" src="https://github.com/user-attachments/assets/85e264f6-74e8-419f-8604-40af35030c2c" /> |
+
 
 ---
 
