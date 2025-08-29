@@ -10,6 +10,10 @@ const requireLogin = (req, res, next) => {
 module.exports = app => {
     // --- DYNAMIC DASHBOARD STATS ---
     app.get('/api/dashboard_stats', requireLogin, async (req, res) => {
+        // NEW: Health Check Route
+        app.get('/api/health', (req, res) => {
+            res.status(200).send({ status: 'ok' });
+        });
         const userId = req.user.id;
         const [income, expense, transactionCount, userCount] = await Promise.all([
             db.Transaction.sum('amount', { where: { userId, type: 'income' } }),
