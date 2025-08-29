@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
+import axios from 'axios';
 
-// Icon Components (no changes needed)
+// --- Icon Components ---
 const DashboardIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>;
 const SalesIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
 const TransactionsIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>;
@@ -12,8 +13,7 @@ const ContactIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentCo
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>;
 
 
-
-// NEW: Server Status Indicator Component
+// Server Status Indicator Component
 const ServerStatus = () => {
     const [status, setStatus] = useState('checking'); // 'ok', 'checking', 'down'
 
@@ -68,14 +68,14 @@ const MainLayout = ({ user }) => {
         <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row font-sans">
             <header className="lg:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-30">
                 <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold text-[#4285F4]">Board.</Link>
-                <div className="flex items-center">
-                    <span className="mr-4 text-sm truncate">{user?.displayName}</span>
+                <div className="flex items-center space-x-4">
+                    <ServerStatus />
+                    <span className="text-sm truncate">{user?.displayName}</span>
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)}><MenuIcon /></button>
                 </div>
             </header>
 
-            <aside className={`fixed lg:relative top-16 lg:top-0 inset-y-0 left-0 transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out bg-[#4285F4] text-white w-64 lg:w-1/5 lg:m-4 lg:rounded-3xl p-8 flex flex-col justify-between z-20`}>
-
+            <aside className={`fixed lg:relative inset-y-0 left-0 transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out bg-[#4285F4] text-white w-64 lg:w-1/5 lg:m-4 lg:rounded-3xl p-8 flex flex-col justify-between z-20`}>
                 <div>
                     <h1 className="text-4xl font-bold mb-12 hidden lg:block">Board.</h1>
                     <nav>
@@ -105,10 +105,11 @@ const MainLayout = ({ user }) => {
             <div className="w-full lg:w-4/5">
                 <header className="hidden lg:flex justify-between items-center p-8">
                     <h2 className="text-2xl font-bold capitalize">{location.pathname.replace('/', '') || 'Dashboard'}</h2>
-                    <div className="flex items-center">
-                        <img src={user?.photo} alt={user?.displayName} className="rounded-full w-10 h-10 mr-2" />
+                    <div className="flex items-center space-x-4">
+                        <ServerStatus />
+                        <img src={user?.photo} alt={user?.displayName} className="rounded-full w-10 h-10" />
                         <span>{user?.displayName}</span>
-                        <a href="https://my-dashboard-server-1cyf.onrender.com/api/logout" className="ml-4 text-sm text-gray-600 hover:text-black">Logout</a>
+                        <a href="https://my-dashboard-server-1cyf.onrender.com/api/logout" className="text-sm text-gray-600 hover:text-black">Logout</a>
                     </div>
                 </header>
                 <main><Outlet /></main>
