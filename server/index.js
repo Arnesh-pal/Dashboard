@@ -10,7 +10,11 @@ const app = express();
 app.use(express.json());
 
 // --- Middleware ---
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://uboard.netlify.app'
+];
+
 app.use(session({
     secret: process.env.COOKIE_KEY || 'averysecretkey',
     resave: false,
