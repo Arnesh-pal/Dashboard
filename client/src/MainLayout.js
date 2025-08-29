@@ -68,7 +68,7 @@ const MainLayout = ({ user }) => {
                     <div className="flex items-center">
                         <img src={user?.photo} alt={user?.displayName} className="rounded-full w-10 h-10 mr-2" />
                         <span>{user?.displayName}</span>
-                        <a href="http://localhost:5001/api/logout" className="ml-4 text-sm text-gray-600 hover:text-black">Logout</a>
+                        <a href="https://my-dashboard-server-1cyf.onrender.com/api/logout" className="ml-4 text-sm text-gray-600 hover:text-black">Logout</a>
                     </div>
                 </header>
                 <main><Outlet /></main>
