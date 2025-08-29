@@ -8,18 +8,13 @@ const requireLogin = (req, res, next) => {
 };
 
 module.exports = app => {
-    // --- DYNAMIC DASHBOARD STATS ---
-
     // Health Check Route
     app.get('/api/health', (req, res) => {
         res.status(200).send({ status: 'ok' });
     });
-    
+
+    // --- DYNAMIC DASHBOARD STATS ---
     app.get('/api/dashboard_stats', requireLogin, async (req, res) => {
-        // NEW: Health Check Route
-        app.get('/api/health', (req, res) => {
-            res.status(200).send({ status: 'ok' });
-        });
         const userId = req.user.id;
         const [income, expense, transactionCount, userCount] = await Promise.all([
             db.Transaction.sum('amount', { where: { userId, type: 'income' } }),
@@ -38,7 +33,7 @@ module.exports = app => {
     app.get('/api/activities_chart', requireLogin, async (req, res) => {
         const { view } = req.query;
         const userId = req.user.id;
-        
+
         try {
             if (view === 'year') {
                 const oneYearAgo = new Date();
@@ -61,8 +56,8 @@ module.exports = app => {
                 const transactions = await db.Transaction.findAll({
                     where: { userId, date: { [Op.between]: [startOfMonth, endOfMonth] } },
                     attributes: [
-                        // CORRECTED: This ensures days 22-31 are all grouped into the 4th week (index 3)
-                        [db.sequelize.literal(`LEAST(FLOOR((EXTRACT(DAY FROM "date") - 1) / 7), 3)`), 'group'],
+                        // CORRECTED: This correctly groups days into weeks 0, 1, 2, 3, 4
+                        [db.sequelize.literal(`FLOOR((EXTRACT(DAY FROM "date") - 1) / 7)`), 'group'],
                         [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'expense' THEN amount ELSE 0 END`)), 'expenseTotal'],
                         [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'income' THEN amount ELSE 0 END`)), 'incomeTotal']
                     ],
@@ -81,7 +76,7 @@ module.exports = app => {
     app.get('/api/top_products', requireLogin, async (req, res) => {
         const topProducts = await db.Sale.findAll({
             where: { userId: req.user.id },
-            attributes: [ 'productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']],
+            attributes: ['productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']],
             group: ['productName'],
             order: [[db.sequelize.fn('sum', db.sequelize.col('quantity')), 'DESC']],
             limit: 3
