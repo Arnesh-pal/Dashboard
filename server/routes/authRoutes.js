@@ -1,4 +1,5 @@
 const passport = require('passport');
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 module.exports = app => {
     app.get(
@@ -12,7 +13,7 @@ module.exports = app => {
         '/auth/google/callback',
         passport.authenticate('google'),
         (req, res) => {
-            res.redirect('http://localhost:3000/dashboard'); // Redirect to the dashboard after login
+            res.redirect('${CLIENT_URL}/dashboard'); // Redirect to the dashboard after login
         }
     );
 
@@ -20,7 +21,7 @@ module.exports = app => {
         req.logout(function (err) {
             if (err) { return next(err); }
             // Redirect to the frontend's home page after logout
-            res.redirect('http://localhost:3000/');
+            res.redirect('${CLIENT_URL}/');
         });
     });
 
