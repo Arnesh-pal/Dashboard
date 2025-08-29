@@ -28,7 +28,7 @@ module.exports = app => {
     app.get('/api/activities_chart', requireLogin, async (req, res) => {
         const { view } = req.query;
         const userId = req.user.id;
-
+        
         try {
             if (view === 'year') {
                 const oneYearAgo = new Date();
@@ -71,7 +71,7 @@ module.exports = app => {
     app.get('/api/top_products', requireLogin, async (req, res) => {
         const topProducts = await db.Sale.findAll({
             where: { userId: req.user.id },
-            attributes: ['productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']],
+            attributes: [ 'productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']],
             group: ['productName'],
             order: [[db.sequelize.fn('sum', db.sequelize.col('quantity')), 'DESC']],
             limit: 3
@@ -131,42 +131,20 @@ module.exports = app => {
         const updatedUser = await db.User.findByPk(req.user.id);
         res.send(updatedUser);
     });
-    // --- SCHEDULE ROUTES (NOW WITH FULL CRUD) ---
     app.get('/api/schedules', requireLogin, async (req, res) => {
-        const schedules = await db.Schedule.findAll({ where: { userId: req.user.id }, order: [['createdAt', 'DESC']] });
+        const schedules = await db.Schedule.findAll({ where: { userId: req.user.id } });
         res.send(schedules);
     });
     app.post('/api/schedules', requireLogin, async (req, res) => {
         const schedule = await db.Schedule.create({ ...req.body, userId: req.user.id });
         res.status(201).send(schedule);
     });
-    // NEW: UPDATE A SCHEDULE
-    app.put('/api/schedules/:id', requireLogin, async (req, res) => {
-        await db.Schedule.update(req.body, { where: { id: req.params.id, userId: req.user.id } });
-        res.status(200).send({ message: 'Schedule updated.' });
-    });
-    // NEW: DELETE A SCHEDULE
-    app.delete('/api/schedules/:id', requireLogin, async (req, res) => {
-        await db.Schedule.destroy({ where: { id: req.params.id, userId: req.user.id } });
-        res.status(200).send({ message: 'Schedule deleted.' });
-    });
-    // --- USERS/PROFILES ROUTE (NOW WITH FULL CRUD) ---
     app.get('/api/users', requireLogin, async (req, res) => {
-        const profiles = await db.Profile.findAll({ where: { userId: req.user.id }, order: [['createdAt', 'DESC']] });
+        const profiles = await db.Profile.findAll({ where: { userId: req.user.id } });
         res.send(profiles);
     });
     app.post('/api/profiles', requireLogin, async (req, res) => {
         const profile = await db.Profile.create({ ...req.body, userId: req.user.id });
         res.status(201).send(profile);
-    });
-    // NEW: UPDATE A PROFILE
-    app.put('/api/profiles/:id', requireLogin, async (req, res) => {
-        await db.Profile.update(req.body, { where: { id: req.params.id, userId: req.user.id } });
-        res.status(200).send({ message: 'Profile updated.' });
-    });
-    // NEW: DELETE A PROFILE
-    app.delete('/api/profiles/:id', requireLogin, async (req, res) => {
-        await db.Profile.destroy({ where: { id: req.params.id, userId: req.user.id } });
-        res.status(200).send({ message: 'Profile deleted.' });
     });
 };
