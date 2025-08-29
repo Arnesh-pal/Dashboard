@@ -10,20 +10,22 @@ const app = express();
 app.use(express.json());
 
 // --- Middleware ---
-// ✅ Allow Netlify frontend
 app.use(cors({
-  origin: "https://uboard.netlify.app",  // frontend URL
-  credentials: true,                      // allow cookies/sessions
+    origin: "https://uboard.netlify.app", // Your Netlify frontend URL
+    credentials: true,
 }));
 
+// This tells Express to trust the headers sent by Render's proxy
+app.set('trust proxy', 1);
+
 app.use(session({
-    secret: process.env.COOKIE_KEY || 'averysecretkey',
+    secret: process.env.COOKIE_KEY,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // only https in prod
+        secure: true, // Requires https
         httpOnly: true,
-        sameSite: 'none', // allow cross-site (Render <-> Netlify)
+        sameSite: 'none', // Required for cross-site cookies
     }
 }));
 
@@ -43,8 +45,6 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     try {
-        // Using { alter: true } will update the database tables to match the models
-        // It's useful for development but be cautious in production
         await db.sequelize.sync({ alter: true });
         console.log("PostgreSQL connected and models synced successfully.");
     } catch (error) {
