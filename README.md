@@ -103,5 +103,3 @@ To run this project locally, you will need Node.js and a PostgreSQL database.
     The frontend will be running on `http://localhost:3000`.
 
 ---
-
-This README provides a complete overview of your project. You can now copy this content into a `README.md` file in the root of your GitHub repository.
