@@ -59,6 +59,13 @@ This project is built with a modern, full-stack architecture:
 
 ---
 
+## 📜 License
+
+Distributed under the **MIT License**.
+See [`LICENSE`](./LICENSE) for more information.
+
+---
+
 ## 🚀 Setup and Installation
 
 To run this project locally, you will need Node.js and a PostgreSQL database.
