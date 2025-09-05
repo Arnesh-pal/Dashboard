@@ -12,7 +12,6 @@ const SettingsIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentC
 const ContactIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>;
 
-
 // Server Status Indicator Component
 const ServerStatus = () => {
     const [status, setStatus] = useState('checking'); // 'ok', 'checking', 'down'
@@ -21,7 +20,8 @@ const ServerStatus = () => {
         const checkStatus = async () => {
             setStatus('checking');
             try {
-                await axios.get('/api/health');
+                // Use the full URL for the deployed app
+                await axios.get('https://my-dashboard-server-1cyf.onrender.com/api/health');
                 setStatus('ok');
             } catch (error) {
                 setStatus('down');
@@ -55,6 +55,7 @@ const MainLayout = ({ user }) => {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    // CORRECTED: Added "Dashboard" to this list for mobile view
     const navItems = [
         { path: '/dashboard', icon: DashboardIcon, label: 'Dashboard' },
         { path: '/sales', icon: SalesIcon, label: 'Sales' },
