@@ -20,18 +20,18 @@ const ServerStatus = () => {
         const checkStatus = async () => {
             setStatus('checking');
             try {
-                // Use the full URL for the deployed app
-                await axios.get('https://my-dashboard-server-1cyf.onrender.com/api/health');
+                // CORRECTED: Use the Vercel URL
+                await axios.get('https://dashboard-henna-ten-79.vercel.app/api/health');
                 setStatus('ok');
             } catch (error) {
                 setStatus('down');
             }
         };
 
-        checkStatus(); // Initial check
-        const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
+        checkStatus();
+        const interval = setInterval(checkStatus, 30000);
 
-        return () => clearInterval(interval); // Cleanup on component unmount
+        return () => clearInterval(interval);
     }, []);
 
     const statusConfig = {
@@ -50,12 +50,10 @@ const ServerStatus = () => {
     );
 };
 
-
 const MainLayout = ({ user }) => {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // CORRECTED: Added "Dashboard" to this list for mobile view
     const navItems = [
         { path: '/dashboard', icon: DashboardIcon, label: 'Dashboard' },
         { path: '/sales', icon: SalesIcon, label: 'Sales' },
@@ -97,7 +95,8 @@ const MainLayout = ({ user }) => {
                         <ContactIcon />
                         <span className="ml-4">Contact Us</span>
                     </Link>
-                    <a href="https://my-dashboard-server-1cyf.onrender.com/api/logout" className="flex items-center p-2 rounded-lg hover:bg-white/20 text-sm">
+                    {/* CORRECTED: Use the Vercel URL */}
+                    <a href="https://dashboard-henna-ten-79.vercel.app/api/logout" className="flex items-center p-2 rounded-lg hover:bg-white/20 text-sm">
                         <span>Logout</span>
                     </a>
                 </div>
@@ -110,7 +109,8 @@ const MainLayout = ({ user }) => {
                         <ServerStatus />
                         <img src={user?.photo} alt={user?.displayName} className="rounded-full w-10 h-10" />
                         <span>{user?.displayName}</span>
-                        <a href="https://my-dashboard-server-1cyf.onrender.com/api/logout" className="text-sm text-gray-600 hover:text-black">Logout</a>
+                        {/* CORRECTED: Use the Vercel URL */}
+                        <a href="https://dashboard-henna-ten-79.vercel.app/api/logout" className="text-sm text-gray-600 hover:text-black">Logout</a>
                     </div>
                 </header>
                 <main><Outlet /></main>

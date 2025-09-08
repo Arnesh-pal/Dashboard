@@ -14,7 +14,7 @@ import SettingsPage from './SettingsPage';
 import ContactPage from './ContactPage';
 import MainLayout from './MainLayout';
 
-axios.defaults.baseURL = 'https://my-dashboard-server-1cyf.onrender.com';
+axios.defaults.baseURL = 'https://dashboard-henna-ten-79.vercel.app/';
 axios.defaults.withCredentials = true;
 
 function App() {

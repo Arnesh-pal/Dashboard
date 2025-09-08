@@ -36,7 +36,7 @@ function SignInPage() {
                         <p className="text-gray-500 mt-2">Sign in to continue to your dashboard</p>
                     </div>
 
-                    <a href="https://my-dashboard-server-1cyf.onrender.com/auth/google" className="w-full flex items-center justify-center py-3 px-4 border border-gray-200 rounded-xl shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-100 transition-all duration-300">
+                    <a href="https://dashboard-henna-ten-79.vercel.app/auth/google" className="w-full flex items-center justify-center py-3 px-4 border border-gray-200 rounded-xl shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-100 transition-all duration-300">
                         <GoogleIcon />
                         Sign in with Google
                     </a>
