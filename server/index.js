@@ -15,7 +15,6 @@ app.use(cors({
     credentials: true,
 }));
 
-// This tells Express to trust the headers sent by Render's proxy
 app.set('trust proxy', 1);
 
 app.use(session({
@@ -23,31 +22,26 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // Requires https
+        secure: true,
         httpOnly: true,
-        sameSite: 'none', // Required for cross-site cookies
+        sameSite: 'none',
     }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- Register Models & Passport ---
+// --- Register Models, Passport, and Routes ---
 require('./services/passport');
-
-// --- Routes ---
 require('./routes/authRoutes')(app);
 require('./routes/apiRoutes')(app);
 require('./routes/localAuthRoutes')(app);
 
-// --- Server & DB Initialization ---
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, async () => {
-    console.log(`Server is running on port ${PORT}`);
-    try {
-        await db.sequelize.sync({ alter: true });
-        console.log("PostgreSQL connected and models synced successfully.");
-    } catch (error) {
-        console.error("Failed to connect to PostgreSQL:", error);
-    }
-});
+// --- Database Connection (runs on first request) ---
+db.sequelize.authenticate()
+    .then(() => console.log('PostgreSQL connected successfully.'))
+    .catch(err => console.error('Failed to connect to PostgreSQL:', err));
+
+// --- EXPORT THE APP FOR VERCEL ---
+// We no longer need app.listen() because Vercel handles the server lifecycle.
+module.exports = app;
