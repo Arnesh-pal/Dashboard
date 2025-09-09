@@ -14,7 +14,10 @@ import SettingsPage from './SettingsPage';
 import ContactPage from './ContactPage';
 import MainLayout from './MainLayout';
 
-axios.defaults.baseURL = 'https://dashboard-henna-ten-79.vercel.app/';
+// --- CONFIGURATION ---
+// This is your deployed Vercel URL
+axios.defaults.baseURL = 'https://dashboard-henna-ten-79.vercel.app';
+// THIS IS THE CRUCIAL LINE THAT WAS MISSING
 axios.defaults.withCredentials = true;
 
 function App() {
@@ -53,8 +56,7 @@ function App() {
             <Route path="sales" element={<SalesPage onDataChange={handleDataChange} />} />
             <Route path="transactions" element={<TransactionsPage onDataChange={handleDataChange} />} />
             <Route path="schedules" element={<SchedulesPage />} />
-            {/* THIS IS THE CORRECTED LINE */}
-            <Route path="users" element={<UsersPage dataVersion={dataVersion} onDataChange={handleDataChange} />} />
+            <Route path="users" element={<UsersPage onDataChange={handleDataChange} />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
