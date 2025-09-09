@@ -1,8 +1,18 @@
+// src/Dashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
-import instance from './axiosInstance';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+} from 'chart.js';
 import AddProfileModal from './AddProfileModal';
+import axiosInstance from './axiosInstance';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -21,23 +31,25 @@ function Dashboard({ dataVersion, onDataChange }) {
     const fetchData = useCallback(async () => {
         try {
             const [statsRes, activitiesRes, topProductsRes] = await Promise.all([
-                instance.get('/api/dashboard_stats'),
-                instance.get(`/api/activities_chart?view=${chartView}`),
-                instance.get('/api/top_products')
+                axiosInstance.get('/api/dashboard_stats'),
+                axiosInstance.get(`/api/activities_chart?view=${chartView}`),
+                axiosInstance.get('/api/top_products')
             ]);
 
             setStats(statsRes.data);
 
+            // Activities chart
             const { transactions, view } = activitiesRes.data;
             let labels, incomeData, expenseData;
 
             if (view === 'month') {
                 labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                incomeData = Array(4).fill(0);
-                expenseData = Array(4).fill(0);
+                incomeData = [0, 0, 0, 0];
+                expenseData = [0, 0, 0, 0];
+
                 transactions.forEach(t => {
-                    const transactionDate = new Date(t.date);
-                    const weekIndex = Math.min(Math.floor((transactionDate.getDate() - 1) / 7), 3);
+                    const day = new Date(t.date).getDate();
+                    const weekIndex = Math.min(Math.floor((day - 1) / 7), 3);
                     if (t.type === 'income') incomeData[weekIndex] += parseFloat(t.amount);
                     else expenseData[weekIndex] += parseFloat(t.amount);
                 });
@@ -60,6 +72,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                 ]
             });
 
+            // Top products chart
             const products = topProductsRes.data;
             setTopProductsData({
                 labels: products.map(p => p.productName),
@@ -69,8 +82,9 @@ function Dashboard({ dataVersion, onDataChange }) {
                     borderWidth: 0,
                 }]
             });
-        } catch (error) {
-            console.error("Failed to fetch dashboard data", error);
+
+        } catch (err) {
+            console.error('Failed to fetch dashboard data', err);
         }
     }, [chartView]);
 
@@ -108,14 +122,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                         </div>
                     </div>
                     <div className="mt-4 h-72">
-                        <Bar
-                            data={activitiesChartData}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
-                            }}
-                        />
+                        <Bar data={activitiesChartData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }} />
                     </div>
                 </div>
 
@@ -124,21 +131,14 @@ function Dashboard({ dataVersion, onDataChange }) {
                         <h3 className="font-bold text-lg mb-4">Top Products</h3>
                         <div className="flex flex-col sm:flex-row items-center">
                             <div className="w-full sm:w-1/2 h-48">
-                                <Doughnut
-                                    data={topProductsData}
-                                    options={{
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: { legend: { display: false } }
-                                    }}
-                                />
+                                <Doughnut data={topProductsData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
                             </div>
                             <div className="w-full sm:w-1/2 pl-0 sm:pl-4 mt-4 sm:mt-0">
                                 <ul>
                                     {topProductsData.labels.map((label, i) => (
                                         <li key={i} className="flex items-center mb-2">
                                             <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: topProductsData.datasets[0].backgroundColor[i] }}></span>
-                                            <div><p className="font-bold">{label}</p></div>
+                                            <p className="font-bold">{label}</p>
                                         </li>
                                     ))}
                                 </ul>
@@ -152,6 +152,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                     </div>
                 </div>
             </div>
+
             <AddProfileModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={onDataChange} />
         </>
     );

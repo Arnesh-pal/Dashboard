@@ -1,8 +1,9 @@
+// src/axiosInstance.js
 import axios from 'axios';
 
-const instance = axios.create({
-    baseURL: '', // relative URL works for production on Vercel/Netlify
-    withCredentials: true, // important for session cookies
+const axiosInstance = axios.create({
+    baseURL: '',           // relative URL = same domain in production
+    withCredentials: true, // send cookies for session auth
 });
 
-export default instance;
+export default axiosInstance;
