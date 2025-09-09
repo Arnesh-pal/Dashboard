@@ -1,3 +1,4 @@
+// server/routes/apiRoutes.js
 const db = require('../models');
 const { Op } = require('sequelize');
 
@@ -7,56 +8,74 @@ const requireLogin = (req, res, next) => {
 };
 
 module.exports = app => {
-    // DYNAMIC DASHBOARD STATS (Now creates stats if they don't exist)
+    // Health Check Route
+    app.get('/api/health', (req, res) => {
+        res.status(200).send({ status: 'ok' });
+    });
+
+    // --- DYNAMIC DASHBOARD STATS ---
     app.get('/api/dashboard_stats', requireLogin, async (req, res) => {
         const userId = req.user.id;
+        const [income, expense, transactionCount, userCount] = await Promise.all([
+            db.Transaction.sum('amount', { where: { userId, type: 'income' } }),
+            db.Transaction.sum('amount', { where: { userId, type: 'expense' } }),
+            db.Transaction.count({ where: { userId } }),
+            db.Profile.count({ where: { userId } })
+        ]);
+        res.send({
+            totalRevenues: (income || 0) - (expense || 0),
+            totalTransactions: transactionCount || 0,
+            totalUsers: userCount || 0,
+        });
+    });
+
+    // --- DYNAMIC GRAPH DATA (WITH CORRECTED LOGIC) ---
+    app.get('/api/activities_chart', requireLogin, async (req, res) => {
+        const { view } = req.query;
+        const userId = req.user.id;
+
         try {
-            let stats = await db.DashboardStat.findOne({ where: { userId } });
-            if (!stats) {
-                stats = await db.DashboardStat.create({ userId });
+            if (view === 'year') {
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const transactions = await db.Transaction.findAll({
+                    where: { userId, date: { [Op.gte]: oneYearAgo } },
+                    attributes: [
+                        [db.sequelize.fn('date_trunc', 'month', db.sequelize.col('date')), 'group'],
+                        [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'expense' THEN amount ELSE 0 END`)), 'expenseTotal'],
+                        [db.sequelize.fn('sum', db.sequelize.literal(`CASE WHEN type = 'income' THEN amount ELSE 0 END`)), 'incomeTotal']
+                    ],
+                    group: ['group'],
+                    order: [['group', 'ASC']]
+                });
+                res.send({ transactions, view: 'year' });
+            } else { // Default to 'month' view
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                // CORRECTED: Send all raw transactions for the current month
+                const transactions = await db.Transaction.findAll({
+                    where: { userId, date: { [Op.between]: [startOfMonth, endOfMonth] } },
+                    order: [['date', 'ASC']]
+                });
+                res.send({ transactions, view: 'month' });
             }
-            const [income, expense, transactionCount, userCount] = await Promise.all([
-                db.Transaction.sum('amount', { where: { userId, type: 'income' } }),
-                db.Transaction.sum('amount', { where: { userId, type: 'expense' } }),
-                db.Transaction.count({ where: { userId } }),
-                db.Profile.count({ where: { userId } })
-            ]);
-            res.send({
-                totalRevenues: (income || 0) - (expense || 0),
-                totalTransactions: transactionCount || 0,
-                totalUsers: userCount || 0,
-            });
         } catch (error) {
-            res.status(500).send({ error: "Failed to fetch dashboard stats" });
+            console.error("Chart data error:", error);
+            res.status(500).send({ error: "Failed to fetch chart data" });
         }
     });
-
-    // DYNAMIC GRAPH DATA (Now creates default data if it doesn't exist)
-    app.get('/api/activities_chart', requireLogin, async (req, res) => {
-        // ... (This route's logic is already robust and doesn't need changing)
-    });
-
+    // ... (rest of the routes are unchanged)
     app.get('/api/top_products', requireLogin, async (req, res) => {
-        const userId = req.user.id;
-        let products = await db.Sale.findAll({
-            where: { userId },
+        const topProducts = await db.Sale.findAll({
+            where: { userId: req.user.id },
             attributes: ['productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']],
             group: ['productName'],
             order: [[db.sequelize.fn('sum', db.sequelize.col('quantity')), 'DESC']],
             limit: 3
         });
-        if (!products || products.length === 0) {
-            await db.Sale.bulkCreate([
-                { productName: 'Basic Tees', quantity: 55, userId },
-                { productName: 'Custom Shorts', quantity: 31, userId },
-                { productName: 'Super Hoodies', quantity: 14, userId },
-            ]);
-            products = await db.Sale.findAll({ where: { userId }, group: ['productName', 'sale.id'], attributes: ['productName', [db.sequelize.fn('sum', db.sequelize.col('quantity')), 'totalQuantity']], order: [['totalQuantity', 'DESC']], limit: 3 });
-        }
-        res.send(products);
+        res.send(topProducts);
     });
-
-    // ... (All other routes remain the same)
     app.get('/api/sales', requireLogin, async (req, res) => {
         const sales = await db.Sale.findAll({ where: { userId: req.user.id }, order: [['createdAt', 'DESC']] });
         res.send(sales);
