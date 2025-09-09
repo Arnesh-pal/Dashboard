@@ -1,34 +1,44 @@
-// server/routes/authRoutes.js
-const passport = require("passport");
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
-module.exports = (app) => {
-    // --- Google OAuth start ---
+// Function to generate a JWT
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '1d' }
+    );
+};
+
+module.exports = app => {
+    // This route starts the Google OAuth flow
     app.get(
-        "/auth/google",
-        passport.authenticate("google", { scope: ["profile", "email"] })
+        '/auth/google',
+        passport.authenticate('google', {
+            scope: ['profile', 'email'], // The permissions we ask from Google
+            session: false
+        })
     );
 
-    // --- Google OAuth callback ---
+    // This is the callback route Google redirects to after the user approves
     app.get(
-        "/auth/google/callback",
-        passport.authenticate("google", { failureRedirect: "/login", session: false }),
+        '/auth/google/callback',
+        passport.authenticate('google', {
+            failureRedirect: `${process.env.FRONTEND_URL}/login`, // Redirect to login on failure
+            session: false
+        }),
         (req, res) => {
-            // req.user contains { user, token } from passport.js
-            const { user, token } = req.user;
+            // If authentication is successful, passport attaches the user to req.user
+            const token = generateToken(req.user);
 
-            // Redirect frontend with token in query param
+            // ✅ FIX: Redirect to a special frontend route with the token in the URL
             res.redirect(`${process.env.FRONTEND_URL}/oauth?token=${token}`);
         }
     );
 
-    // --- Local login (email/password) ---
-    app.post(
-        "/auth/login",
-        passport.authenticate("local", { session: false }),
-        (req, res) => {
-            // req.user contains { user, token } from passport.js
-            const { user, token } = req.user;
-            res.json({ token, user });
-        }
-    );
+    // Logout Route
+    app.get('/api/logout', (req, res) => {
+        req.logout(); // This is a passport function
+        res.redirect(process.env.FRONTEND_URL || '/');
+    });
 };
