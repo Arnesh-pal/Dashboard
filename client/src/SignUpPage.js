@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function SignUpPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         try {
             await axios.post('/auth/register', { email, password, displayName });
-            window.location.href = '/dashboard';
+            navigate('/login');
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
         }

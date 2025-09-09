@@ -1,7 +1,17 @@
+// client/src/Dashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from './axiosInstance'; // Use your production-ready axios instance
+import axios from './axiosInstance'; // Your axios instance with JWT
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+} from 'chart.js';
 import AddProfileModal from './AddProfileModal';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -11,12 +21,13 @@ const generateColors = (numColors) => {
     return Array.from({ length: numColors }, (_, i) => colors[i % colors.length]);
 };
 
-function Dashboard({ dataVersion, onDataChange }) {
+function Dashboard() {
     const [stats, setStats] = useState({ totalRevenues: 0, totalTransactions: 0, totalUsers: 0 });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activitiesChartData, setActivitiesChartData] = useState({ labels: [], datasets: [] });
     const [topProductsData, setTopProductsData] = useState({ labels: [], datasets: [{ data: [] }] });
     const [chartView, setChartView] = useState('month');
+    const [dataVersion, setDataVersion] = useState(0); // to trigger refresh
 
     const fetchData = useCallback(async () => {
         try {
@@ -26,6 +37,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                 axios.get('/api/top_products')
             ]);
 
+            // Dashboard stats
             const statsData = statsRes?.data || {};
             setStats({
                 totalRevenues: statsData.totalRevenues || 0,
@@ -33,10 +45,10 @@ function Dashboard({ dataVersion, onDataChange }) {
                 totalUsers: statsData.totalUsers || 0
             });
 
+            // Activities chart
             const transactions = activitiesRes?.data?.transactions || [];
             const view = activitiesRes?.data?.view || 'month';
-
-            let labels, incomeData, expenseData;
+            let labels = [], incomeData = [], expenseData = [];
 
             if (view === 'month') {
                 labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
@@ -46,8 +58,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                 transactions.forEach(t => {
                     if (!t || !t.date) return;
                     const transactionDate = new Date(t.date);
-                    const dayOfMonth = transactionDate.getDate();
-                    const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3);
+                    const weekIndex = Math.min(Math.floor((transactionDate.getDate() - 1) / 7), 3);
                     if (t.type === 'income') incomeData[weekIndex] += parseFloat(t.amount || 0);
                     else expenseData[weekIndex] += parseFloat(t.amount || 0);
                 });
@@ -72,28 +83,31 @@ function Dashboard({ dataVersion, onDataChange }) {
                 ]
             });
 
+            // Top products chart
             const products = topProductsRes?.data || [];
             setTopProductsData({
                 labels: products.map(p => p.productName || ''),
                 datasets: [{
                     data: products.map(p => p.totalQuantity || 0),
                     backgroundColor: generateColors(products.length),
-                    borderWidth: 0,
+                    borderWidth: 0
                 }]
             });
 
         } catch (error) {
-            console.error("Failed to fetch dashboard data", error);
+            console.error('Failed to fetch dashboard data', error);
             // fallback empty state
             setStats({ totalRevenues: 0, totalTransactions: 0, totalUsers: 0 });
             setActivitiesChartData({ labels: [], datasets: [] });
             setTopProductsData({ labels: [], datasets: [{ data: [] }] });
         }
-    }, [chartView]);
+    }, [chartView, dataVersion]);
 
     useEffect(() => {
         fetchData();
-    }, [fetchData, dataVersion]);
+    }, [fetchData]);
+
+    const handleModalSuccess = () => setDataVersion(prev => prev + 1); // trigger refresh
 
     return (
         <>
@@ -125,7 +139,18 @@ function Dashboard({ dataVersion, onDataChange }) {
                         </div>
                     </div>
                     <div className="mt-4 h-72">
-                        <Bar data={activitiesChartData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }} />
+                        <Bar
+                            data={activitiesChartData}
+                            options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: { grid: { display: false } },
+                                    y: { beginAtZero: true }
+                                },
+                                plugins: { legend: { position: 'top' } }
+                            }}
+                        />
                     </div>
                 </div>
 
@@ -134,14 +159,21 @@ function Dashboard({ dataVersion, onDataChange }) {
                         <h3 className="font-bold text-lg mb-4">Top Products</h3>
                         <div className="flex flex-col sm:flex-row items-center">
                             <div className="w-full sm:w-1/2 h-48">
-                                <Doughnut data={topProductsData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+                                <Doughnut
+                                    data={topProductsData}
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: { legend: { display: false } }
+                                    }}
+                                />
                             </div>
                             <div className="w-full sm:w-1/2 pl-0 sm:pl-4 mt-4 sm:mt-0">
                                 <ul>
                                     {topProductsData.labels.map((label, i) => (
                                         <li key={i} className="flex items-center mb-2">
                                             <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: topProductsData.datasets[0].backgroundColor[i] }}></span>
-                                            <div><p className="font-bold">{label}</p></div>
+                                            <p className="font-bold">{label}</p>
                                         </li>
                                     ))}
                                 </ul>
@@ -149,14 +181,21 @@ function Dashboard({ dataVersion, onDataChange }) {
                         </div>
                     </div>
 
-                    <div onClick={() => setIsModalOpen(true)} className="bg-white p-6 rounded-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-gray-50 shadow-md">
+                    <div
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-white p-6 rounded-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-gray-50 shadow-md"
+                    >
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-4xl text-gray-400 mb-4">+</div>
                         <h3 className="font-bold text-lg">Add Profile</h3>
                     </div>
                 </div>
             </div>
 
-            <AddProfileModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={onDataChange} />
+            <AddProfileModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={handleModalSuccess}
+            />
         </>
     );
 }

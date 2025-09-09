@@ -1,31 +1,34 @@
-const passport = require('passport');
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+// server/routes/authRoutes.js
+const passport = require("passport");
 
-module.exports = app => {
+module.exports = (app) => {
+    // --- Google OAuth start ---
     app.get(
-        '/auth/google',
-        passport.authenticate('google', {
-            scope: ['profile', 'email']
-        })
+        "/auth/google",
+        passport.authenticate("google", { scope: ["profile", "email"] })
     );
 
+    // --- Google OAuth callback ---
     app.get(
-        '/auth/google/callback',
-        passport.authenticate('google'),
+        "/auth/google/callback",
+        passport.authenticate("google", { failureRedirect: "/login", session: false }),
         (req, res) => {
-            res.redirect(`${CLIENT_URL}/dashboard`); // Redirect to the dashboard after login
+            // req.user contains { user, token } from passport.js
+            const { user, token } = req.user;
+
+            // Redirect frontend with token in query param
+            res.redirect(`${process.env.FRONTEND_URL}/oauth?token=${token}`);
         }
     );
 
-    app.get('/api/logout', (req, res, next) => {
-        req.logout(function (err) {
-            if (err) { return next(err); }
-            // Redirect to the frontend's home page after logout
-            res.redirect(`${CLIENT_URL}/`);
-        });
-    });
-
-    app.get('/api/current_user', (req, res) => {
-        res.send(req.user);
-    });
+    // --- Local login (email/password) ---
+    app.post(
+        "/auth/login",
+        passport.authenticate("local", { session: false }),
+        (req, res) => {
+            // req.user contains { user, token } from passport.js
+            const { user, token } = req.user;
+            res.json({ token, user });
+        }
+    );
 };

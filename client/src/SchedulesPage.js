@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios from './axiosInstance';
 
 function SchedulesPage() {
     const [schedules, setSchedules] = useState([]);
@@ -7,11 +7,15 @@ function SchedulesPage() {
     const [location, setLocation] = useState('');
     const [time, setTime] = useState('');
     const [editingId, setEditingId] = useState(null);
-    const [editedData, setEditedData] = useState({});
+    const [editedData, setEditedData] = useState({ title: '', location: '', time: '' });
 
     const fetchSchedules = useCallback(async () => {
-        const res = await axios.get('/api/schedules');
-        setSchedules(res.data);
+        try {
+            const res = await axios.get('/api/schedules');
+            setSchedules(res.data);
+        } catch (error) {
+            console.error("Failed to fetch schedules:", error);
+        }
     }, []);
 
     useEffect(() => {
@@ -20,17 +24,21 @@ function SchedulesPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/schedules', { title, location, time });
-        setTitle('');
-        setLocation('');
-        setTime('');
-        fetchSchedules();
+        try {
+            const res = await axios.post('/api/schedules', { title, location, time });
+            setSchedules(prevSchedules => [...prevSchedules, res.data]);
+            setTitle('');
+            setLocation('');
+            setTime('');
+        } catch (error) {
+            console.error("Failed to add schedule:", error);
+        }
     };
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this schedule?')) {
             await axios.delete(`/api/schedules/${id}`);
-            fetchSchedules();
+            setSchedules(prevSchedules => prevSchedules.filter(s => s.id !== id));
         }
     };
 
@@ -42,9 +50,13 @@ function SchedulesPage() {
     const handleCancelEdit = () => setEditingId(null);
 
     const handleSaveEdit = async (id) => {
-        await axios.put(`/api/schedules/${id}`, editedData);
-        setEditingId(null);
-        fetchSchedules();
+        try {
+            const res = await axios.put(`/api/schedules/${id}`, editedData);
+            setSchedules(prevSchedules => prevSchedules.map(s => (s.id === id ? res.data : s)));
+            setEditingId(null);
+        } catch (error) {
+            console.error("Failed to save edit:", error);
+        }
     };
 
     const handleEditChange = (e) => {
@@ -64,9 +76,9 @@ function SchedulesPage() {
                                     <tr key={s.id} className="border-t">
                                         {editingId === s.id ? (
                                             <>
-                                                <td><input name="title" value={editedData.title} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
-                                                <td><input name="location" value={editedData.location} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
-                                                <td><input name="time" value={editedData.time} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
+                                                <td><input name="title" value={editedData.title || ''} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
+                                                <td><input name="location" value={editedData.location || ''} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
+                                                <td><input name="time" value={editedData.time || ''} onChange={handleEditChange} className="border rounded py-1 px-2 w-full" /></td>
                                                 <td className="text-right space-x-2">
                                                     <button onClick={() => handleSaveEdit(s.id)} className="text-sm text-green-600 font-semibold">Save</button>
                                                     <button onClick={handleCancelEdit} className="text-sm text-gray-600">Cancel</button>
@@ -106,3 +118,4 @@ function SchedulesPage() {
 }
 
 export default SchedulesPage;
+

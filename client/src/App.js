@@ -1,6 +1,8 @@
+// client/src/App.js
+
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import axios from 'axios';
+import { BrowserRouter, Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import axios from './axiosInstance';
 
 // Page Components
 import SignInPage from './SignInPage';
@@ -14,11 +16,36 @@ import SettingsPage from './SettingsPage';
 import ContactPage from './ContactPage';
 import MainLayout from './MainLayout';
 
-// --- CONFIGURATION ---
-// This is your deployed Vercel URL
-axios.defaults.baseURL = 'https://dashboard-henna-ten-79.vercel.app';
-// THIS IS THE CRUCIAL LINE THAT WAS MISSING
-axios.defaults.withCredentials = true;
+
+// --- OAuth handler ---
+function OAuthHandler({ setUser }) {
+  const { search } = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+
+      // ✅ FIX #1: Use the correct '/api/profile' route
+      axios.get('/api/profile')
+        .then(res => {
+          setUser(res.data);
+          navigate("/dashboard");
+        })
+        .catch(() => {
+          setUser(null);
+          navigate("/login");
+        });
+    } else {
+      navigate("/login");
+    }
+  }, [search, navigate, setUser]);
+
+  return <div className="flex items-center justify-center h-screen">Signing you in...</div>;
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,17 +56,18 @@ function App() {
     setDataVersion(prevVersion => prevVersion + 1);
   };
 
+  // check local token on load
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get('/api/current_user');
-        setUser(res.data || null);
-      } catch (error) {
-        setUser(null);
-      }
+    const token = localStorage.getItem("token");
+    if (token) {
+      // ✅ FIX #2: Use the correct '/api/profile' route
+      axios.get('/api/profile')
+        .then(res => setUser(res.data))
+        .catch(() => setUser(null))
+        .finally(() => setLoading(false));
+    } else {
       setLoading(false);
-    };
-    fetchUser();
+    }
   }, []);
 
   if (loading) {
@@ -49,6 +77,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/oauth" element={<OAuthHandler setUser={setUser} />} />
+
         {user ? (
           <Route path="/" element={<MainLayout user={user} />}>
             <Route index element={<Navigate to="/dashboard" />} />

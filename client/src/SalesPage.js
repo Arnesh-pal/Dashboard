@@ -1,5 +1,8 @@
+// client/src/SalesPage.js
+
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+// ✅ Changed this line to use your configured axios instance
+import axios from './axiosInstance';
 
 function SalesPage({ onDataChange }) {
     const [sales, setSales] = useState([]);
@@ -9,6 +12,7 @@ function SalesPage({ onDataChange }) {
     const [editedData, setEditedData] = useState({ productName: '', quantity: 0 });
 
     const fetchSales = useCallback(async () => {
+        // This request will now correctly go to http://localhost:5001/api/sales
         const res = await axios.get('/api/sales');
         setSales(res.data);
     }, []);

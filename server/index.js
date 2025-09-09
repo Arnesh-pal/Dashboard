@@ -1,65 +1,62 @@
-// server/index.js
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
 const cors = require('cors');
 const passport = require('passport');
 const db = require('./models');
 
 const app = express();
+
+// --- MIDDLEWARE SETUP ---
+
+// 1. IMPORTANT: JSON body parser. This MUST come before your routes.
+// This line is what allows your server to read the data from the forms.
 app.use(express.json());
 
-// --- Middleware: CORS ---
+// 2. CORS Configuration to allow requests from your frontend
+const allowedOrigins = [
+    process.env.FRONTEND_URL || 'https://uboard.netlify.app',
+    'http://localhost:3000'
+];
+
 app.use(cors({
-    origin: "https://uboard.netlify.app", // ✅ your frontend domain
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allow common methods
-    allowedHeaders: ["Content-Type", "Authorization"],    // allow axios headers
 }));
 
-app.set('trust proxy', 1); // ✅ required behind Vercel/Netlify proxies
-
-// --- Session Config ---
-app.use(session({
-    secret: process.env.COOKIE_KEY,
-    resave: false,
-    saveUninitialized: false,
-    proxy: true, // ✅ ensure cookies work behind proxies
-    cookie: {
-        secure: true,          // ✅ cookies only over HTTPS
-        httpOnly: true,        // ✅ not accessible by JS
-        sameSite: "none",      // ✅ allow cross-site cookies
-        maxAge: 24 * 60 * 60 * 1000 // 1 day
-    }
-}));
-
-// --- Passport Middleware ---
+// 3. Passport Middleware (for Google OAuth)
 app.use(passport.initialize());
-app.use(passport.session());
-
-// --- Register Passport & Routes ---
 require('./services/passport');
+
+
+// --- ROUTES ---
+// We apply the routes after all the middleware is correctly set up.
 require('./routes/authRoutes')(app);
-require('./routes/apiRoutes')(app);
 require('./routes/localAuthRoutes')(app);
+require('./routes/apiRoutes')(app);
 
-// --- Database Connection ---
+
+// --- DATABASE CONNECTION ---
 db.sequelize.authenticate()
-    .then(() => console.log('PostgreSQL connected successfully.'))
-    .catch(err => console.error('Failed to connect to PostgreSQL:', err));
+    .then(() => console.log('✅ PostgreSQL connected successfully.'))
+    .catch(err => console.error('❌ Failed to connect to PostgreSQL:', err));
 
-// --- Debug Route (to check session & user) ---
-app.get("/api/debug-session", (req, res) => {
-    res.json({
-        session: req.session,
-        user: req.user || null
-    });
-});
+db.sequelize.sync({ alter: true }) // Use { force: true } if you need a clean start
+    .then(() => console.log('🔄 Database schema synced.'))
+    .catch(err => console.error('❌ Failed to sync database schema:', err));
 
-// --- Root Route ---
-app.get('/', (req, res) => {
-    res.send('Backend is running 🚀');
-});
 
-// --- Export app for Vercel ---
+// --- ROOT ROUTE ---
+app.get('/', (req, res) => res.send('Backend is running 🚀'));
+
+
+// --- START SERVER ---
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 module.exports = app;
