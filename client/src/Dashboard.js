@@ -1,18 +1,8 @@
-// src/Dashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from './axiosInstance'; // Use your production-ready axios instance
 import { Bar, Doughnut } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    ArcElement
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import AddProfileModal from './AddProfileModal';
-import axiosInstance from './axiosInstance';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -31,15 +21,21 @@ function Dashboard({ dataVersion, onDataChange }) {
     const fetchData = useCallback(async () => {
         try {
             const [statsRes, activitiesRes, topProductsRes] = await Promise.all([
-                axiosInstance.get('/api/dashboard_stats'),
-                axiosInstance.get(`/api/activities_chart?view=${chartView}`),
-                axiosInstance.get('/api/top_products')
+                axios.get('/api/dashboard_stats'),
+                axios.get(`/api/activities_chart?view=${chartView}`),
+                axios.get('/api/top_products')
             ]);
 
-            setStats(statsRes.data);
+            const statsData = statsRes?.data || {};
+            setStats({
+                totalRevenues: statsData.totalRevenues || 0,
+                totalTransactions: statsData.totalTransactions || 0,
+                totalUsers: statsData.totalUsers || 0
+            });
 
-            // Activities chart
-            const { transactions, view } = activitiesRes.data;
+            const transactions = activitiesRes?.data?.transactions || [];
+            const view = activitiesRes?.data?.view || 'month';
+
             let labels, incomeData, expenseData;
 
             if (view === 'month') {
@@ -48,19 +44,23 @@ function Dashboard({ dataVersion, onDataChange }) {
                 expenseData = [0, 0, 0, 0];
 
                 transactions.forEach(t => {
-                    const day = new Date(t.date).getDate();
-                    const weekIndex = Math.min(Math.floor((day - 1) / 7), 3);
-                    if (t.type === 'income') incomeData[weekIndex] += parseFloat(t.amount);
-                    else expenseData[weekIndex] += parseFloat(t.amount);
+                    if (!t || !t.date) return;
+                    const transactionDate = new Date(t.date);
+                    const dayOfMonth = transactionDate.getDate();
+                    const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3);
+                    if (t.type === 'income') incomeData[weekIndex] += parseFloat(t.amount || 0);
+                    else expenseData[weekIndex] += parseFloat(t.amount || 0);
                 });
             } else {
                 labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 incomeData = Array(12).fill(0);
                 expenseData = Array(12).fill(0);
+
                 transactions.forEach(t => {
+                    if (!t || !t.group) return;
                     const month = new Date(t.group).getMonth();
-                    incomeData[month] += parseFloat(t.incomeTotal);
-                    expenseData[month] += parseFloat(t.expenseTotal);
+                    incomeData[month] += parseFloat(t.incomeTotal || 0);
+                    expenseData[month] += parseFloat(t.expenseTotal || 0);
                 });
             }
 
@@ -72,19 +72,22 @@ function Dashboard({ dataVersion, onDataChange }) {
                 ]
             });
 
-            // Top products chart
-            const products = topProductsRes.data;
+            const products = topProductsRes?.data || [];
             setTopProductsData({
-                labels: products.map(p => p.productName),
+                labels: products.map(p => p.productName || ''),
                 datasets: [{
-                    data: products.map(p => p.totalQuantity),
+                    data: products.map(p => p.totalQuantity || 0),
                     backgroundColor: generateColors(products.length),
                     borderWidth: 0,
                 }]
             });
 
-        } catch (err) {
-            console.error('Failed to fetch dashboard data', err);
+        } catch (error) {
+            console.error("Failed to fetch dashboard data", error);
+            // fallback empty state
+            setStats({ totalRevenues: 0, totalTransactions: 0, totalUsers: 0 });
+            setActivitiesChartData({ labels: [], datasets: [] });
+            setTopProductsData({ labels: [], datasets: [{ data: [] }] });
         }
     }, [chartView]);
 
@@ -138,7 +141,7 @@ function Dashboard({ dataVersion, onDataChange }) {
                                     {topProductsData.labels.map((label, i) => (
                                         <li key={i} className="flex items-center mb-2">
                                             <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: topProductsData.datasets[0].backgroundColor[i] }}></span>
-                                            <p className="font-bold">{label}</p>
+                                            <div><p className="font-bold">{label}</p></div>
                                         </li>
                                     ))}
                                 </ul>
