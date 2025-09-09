@@ -44,4 +44,7 @@ db.sequelize.authenticate()
 
 // --- EXPORT THE APP FOR VERCEL ---
 // We no longer need app.listen() because Vercel handles the server lifecycle.
+app.get('/', (req, res) => {
+    res.send('Backend is running 🚀');
+});
 module.exports = app;
