@@ -1,9 +1,7 @@
-// server/services/passport.js
 const passport = require("passport");
 const { Strategy: GoogleStrategy } = require("passport-google-oauth20");
 const { Strategy: LocalStrategy } = require("passport-local");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const db = require("../models");
 const User = db.User;
 
@@ -22,19 +20,14 @@ passport.use(
                     where: { googleId: profile.id },
                     defaults: {
                         displayName: profile.displayName,
-                        email: profile.emails?.[0]?.value || `${profile.id}@google-oauth.local`,
-                        photo: profile.photos?.[0]?.value || null,
+                        email: profile.emails?.[0]?.value,
+                        photo: profile.photos?.[0]?.value,
                     },
                 });
 
-                // Sign JWT instead of using session
-                const token = jwt.sign(
-                    { id: user.id, email: user.email },
-                    process.env.JWT_SECRET,
-                    { expiresIn: "7d" }
-                );
+                // ✅ FIX: The strategy's only job is to return the verified user.
+                return done(null, user);
 
-                return done(null, { user, token });
             } catch (err) {
                 console.error("Google OAuth Error:", err);
                 return done(err, null);
@@ -57,14 +50,9 @@ passport.use(
                 return done(null, false, { message: "Invalid credentials." });
             }
 
-            // Sign JWT
-            const token = jwt.sign(
-                { id: user.id, email: user.email },
-                process.env.JWT_SECRET,
-                { expiresIn: "7d" }
-            );
+            // ✅ FIX: The strategy returns the user, not the token.
+            return done(null, user);
 
-            return done(null, { user, token });
         } catch (err) {
             console.error("Local Auth Error:", err);
             return done(err);
@@ -73,3 +61,4 @@ passport.use(
 );
 
 module.exports = passport;
+
