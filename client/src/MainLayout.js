@@ -20,7 +20,7 @@ const ServerStatus = () => {
         const checkStatus = async () => {
             setStatus('checking');
             try {
-                // CORRECTED: Use the Vercel URL
+                // Use the full URL for the deployed app
                 await axios.get('https://dashboard-henna-ten-79.vercel.app/api/health');
                 setStatus('ok');
             } catch (error) {
@@ -28,10 +28,10 @@ const ServerStatus = () => {
             }
         };
 
-        checkStatus();
-        const interval = setInterval(checkStatus, 30000);
+        checkStatus(); // Initial check
+        const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
 
-        return () => clearInterval(interval);
+        return () => clearInterval(interval); // Cleanup on component unmount
     }, []);
 
     const statusConfig = {
@@ -43,12 +43,13 @@ const ServerStatus = () => {
     return (
         <div className="relative group flex items-center">
             <span className={`w-3 h-3 rounded-full ${statusConfig[status].color}`}></span>
-            <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="absolute bottom-full mb-2 right-0 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                 {statusConfig[status].tooltip}
             </span>
         </div>
     );
 };
+
 
 const MainLayout = ({ user }) => {
     const location = useLocation();
@@ -95,7 +96,6 @@ const MainLayout = ({ user }) => {
                         <ContactIcon />
                         <span className="ml-4">Contact Us</span>
                     </Link>
-                    {/* CORRECTED: Use the Vercel URL */}
                     <a href="https://dashboard-henna-ten-79.vercel.app/api/logout" className="flex items-center p-2 rounded-lg hover:bg-white/20 text-sm">
                         <span>Logout</span>
                     </a>
@@ -109,7 +109,6 @@ const MainLayout = ({ user }) => {
                         <ServerStatus />
                         <img src={user?.photo} alt={user?.displayName} className="rounded-full w-10 h-10" />
                         <span>{user?.displayName}</span>
-                        {/* CORRECTED: Use the Vercel URL */}
                         <a href="https://dashboard-henna-ten-79.vercel.app/api/logout" className="text-sm text-gray-600 hover:text-black">Logout</a>
                     </div>
                 </header>
